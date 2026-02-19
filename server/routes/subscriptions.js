@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Subscription = require('../models/Subscription');
 const Package = require('../models/Package');
+const { getOrCreateActiveSubscription } = require('../services/subscriptionHelper');
 const { protect } = require('../middleware/auth');
 
 // POST /api/subscriptions/activate
@@ -43,20 +44,8 @@ router.post('/activate', protect, async (req, res) => {
 // GET /api/subscriptions/active
 router.get('/active', protect, async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ user: req.user._id, status: 'active' }).populate('package');
-
-    if (!subscription) {
-      return res.json({ success: true, subscription: null });
-    }
-
-    // Auto-expire if past date
-    if (subscription.expiresAt < new Date()) {
-      subscription.status = 'expired';
-      await subscription.save();
-      return res.json({ success: true, subscription: null });
-    }
-
-    res.json({ success: true, subscription });
+    const subscription = await getOrCreateActiveSubscription(req.user);
+    res.json({ success: true, subscription: subscription || null });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

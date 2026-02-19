@@ -9,6 +9,7 @@ const UserPackage = require('../models/UserPackage');
 const TelecelService = require('../services/telecelService');
 const creditService = require('../services/creditService');
 const queueService = require('../services/queueService');
+const { getOrCreateActiveSubscription } = require('../services/subscriptionHelper');
 const { protect } = require('../middleware/auth');
 const logger = require('../services/logger');
 
@@ -24,7 +25,7 @@ router.post('/send', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: 'dataGB and either beneficiaryId or phone are required' });
     }
 
-    const subscription = await Subscription.findOne({ user: req.user._id, status: 'active' });
+    const subscription = await getOrCreateActiveSubscription(req.user);
     if (!subscription) {
       return res.status(400).json({ success: false, message: 'No active subscription' });
     }
@@ -123,7 +124,7 @@ router.post('/bulk-send', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: 'distributions array is required' });
     }
 
-    const subscription = await Subscription.findOne({ user: req.user._id, status: 'active' });
+    const subscription = await getOrCreateActiveSubscription(req.user);
     if (!subscription) {
       return res.status(400).json({ success: false, message: 'No active subscription' });
     }

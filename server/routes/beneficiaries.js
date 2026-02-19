@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Beneficiary = require('../models/Beneficiary');
-const Subscription = require('../models/Subscription');
+const { getOrCreateActiveSubscription } = require('../services/subscriptionHelper');
 const { protect } = require('../middleware/auth');
 
 // POST /api/beneficiaries
@@ -9,7 +9,7 @@ router.post('/', protect, async (req, res) => {
   try {
     const { name, phone } = req.body;
 
-    const subscription = await Subscription.findOne({ user: req.user._id, status: 'active' });
+    const subscription = await getOrCreateActiveSubscription(req.user);
     if (!subscription) {
       return res.status(400).json({ success: false, message: 'No active subscription. Activate a package first.' });
     }
@@ -42,7 +42,7 @@ router.post('/', protect, async (req, res) => {
 // GET /api/beneficiaries
 router.get('/', protect, async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ user: req.user._id, status: 'active' });
+    const subscription = await getOrCreateActiveSubscription(req.user);
     if (!subscription) {
       return res.json({ success: true, beneficiaries: [], maxBeneficiaries: 0 });
     }

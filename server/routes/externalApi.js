@@ -8,6 +8,7 @@ const SystemConfig = require('../models/SystemConfig');
 const TelecelService = require('../services/telecelService');
 const creditService = require('../services/creditService');
 const queueService = require('../services/queueService');
+const { getOrCreateActiveSubscription } = require('../services/subscriptionHelper');
 const { apiKeyAuth, requirePermission } = require('../middleware/auth');
 const { apiLimiter } = require('../middleware/security');
 const logger = require('../services/logger');
@@ -45,7 +46,7 @@ router.post('/share/send', requirePermission('share:send'), async (req, res) => 
     const recipientName = name || phone || null;
 
     // Try subscription first, then fall back to credit
-    const subscription = await Subscription.findOne({ user: req.user._id, status: 'active' });
+    const subscription = await getOrCreateActiveSubscription(req.user);
     const userCreditType = await creditService.getUserCreditType(req.user._id);
     const hasCredit = userCreditType !== null;
 
@@ -175,7 +176,7 @@ router.post('/share/bulk', requirePermission('share:bulk'), async (req, res) => 
       return res.status(400).json({ success: false, message: 'distributions array required' });
     }
 
-    const subscription = await Subscription.findOne({ user: req.user._id, status: 'active' });
+    const subscription = await getOrCreateActiveSubscription(req.user);
     if (!subscription) return res.status(400).json({ success: false, message: 'No active subscription' });
 
     const totalRequired = distributions.reduce((sum, d) => sum + d.dataGB, 0);
@@ -235,7 +236,7 @@ router.post('/share/bulk', requirePermission('share:bulk'), async (req, res) => 
 // GET /api/v1/beneficiaries - List beneficiaries
 router.get('/beneficiaries', requirePermission('beneficiaries:read'), async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ user: req.user._id, status: 'active' });
+    const subscription = await getOrCreateActiveSubscription(req.user);
     if (!subscription) return res.json({ success: true, beneficiaries: [] });
 
     const beneficiaries = await Beneficiary.find({ subscription: subscription._id, isActive: true }).select('name phone totalSentGB');
