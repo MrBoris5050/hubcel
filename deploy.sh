@@ -70,17 +70,17 @@ echo ""
 echo "[Optional] Setting up SSL with Let's Encrypt..."
 if command -v certbot &> /dev/null || sudo apt install -y -qq certbot python3-certbot-nginx; then
     echo "  Running certbot for hubcel.top..."
-    sudo certbot --nginx -d hubcel.top -d www.hubcel.top --non-interactive --agree-tos --email admin@hubcel.top --redirect || {
+    sudo certbot --nginx -d tel.hubcel.top --non-interactive --agree-tos --email admin@hubcel.top --redirect || {
         echo "  Certbot failed (DNS may not be pointed yet). Run manually later:"
-        echo "    sudo certbot --nginx -d hubcel.top -d www.hubcel.top"
+        echo "    sudo certbot --nginx -d tel.hubcel.top"
     }
 fi
 
 echo ""
 echo "=== All Done ==="
-echo "  Frontend: https://hubcel.top"
-echo "  API:      https://hubcel.top/api"
-echo "  Health:   https://hubcel.top/api/health"
+echo "  Frontend: https://tel.hubcel.top"
+echo "  API:      https://tel.hubcel.top/api"
+echo "  Health:   https://tel.hubcel.top/api/health"
 echo ""
 echo "Useful commands:"
 echo "  pm2 status          - Check process status"
